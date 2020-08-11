@@ -1,0 +1,27 @@
+{
+  "name": "sql_crud_react",
+  "version": "1.0.0",
+  "description": "Coding Challenge Involving React.js, Node.js, and SQL Database.",
+  "main": "index.js",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "create-react-app": "^3.4.1",
+    "express": "^4.17.1",
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tobross/sql_crud_react.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tobross/sql_crud_react/issues"
+  },
+  "homepage": "https://github.com/tobross/sql_crud_react#readme"
+}
