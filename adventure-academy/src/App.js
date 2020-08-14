@@ -20,11 +20,13 @@ class App extends Component {
     }
   }
   
+  //establishes initial dataset via state when the app is loaded or refreshed.
   componentDidMount(){
     this.getCourses();
     this.getTests();
   }
 
+    //fetch current list of all courses in database and update state.courses with that information in .json format.
   getCourses = _ => {
     fetch('http://localhost:4000/course')
       .then(response => response.json())
@@ -36,6 +38,7 @@ class App extends Component {
       
   }
 
+  //fetch current list of all tests in database and update state.tests with that information in .json format.
   getTests = _ => {
     fetch('http://localhost:4000/test')
       .then(response => response.json())
@@ -45,6 +48,32 @@ class App extends Component {
       .then(response => this.setState({tests: response.data}))
       .catch(err => console.error(err))
   }
+
+  //render function to display the entire application
+render(){
+  const {courses, course, tests} = this.state;
+  return (
+    <div className="App">
+      <Cardcontainer getCourses={this.getCourses} getTests={this.getTests} courses={courses} tests={tests}/>
+      <CourseForm getCourses={this.getCourses}/>
+    </div>
+  );
+}
+}
+
+class CourseForm extends React.Component {
+  state = {
+    course: {
+      name: '',
+      domain: '',
+      description: ''
+    }
+  }
+
+  getCourses = () => {
+    this.props.getCourses()
+  }
+ 
   //route for adding a new course to the database via front end  form submission.
   addCourse = _ => {
     const { course } = this.state;
@@ -53,64 +82,19 @@ class App extends Component {
     .catch(err => console.error(err))
   }
 
-  addTest = _ => {
-    const { test } = this.state;
-    fetch(`http://localhost:4000/test/add?name=${test.name}&course_id=${test.course_id}&num_of_questions=${test.num_of_questions}&duration=${test.duration}`)
-    .then(this.getTests)
-    .catch(err => console.error(err))
-  }
-
-  deleteTest = _ => {
-    const {test} = this.state;
-    fetch(`http://localhost:4000/test/delete?id=${test.id}`)
-    .then(this.getTests)
-    .catch(err => console.error(err))
-  }
-
-  deleteCourse = _ => {
+  render(){
     const { course } = this.state;
-    fetch(`http://localhost:4000/course/delete?id=${course.id}`)
-    .then(this.getCourses)
-    .catch(err => console.error(err))
-  }
-
-  renderTest = ({id, course_id, name, num_of_questions, duration}) => <div className={course_id} key={id}><strong>[{course_id}] {name}:</strong> {duration}, {num_of_questions}</div>
-  
-  //xml of text component containing data on course from database -- unused
-  renderCourse = ({id, name, domain, description}) => <div className="card" key={id}><strong>[{id}] {name}: </strong><br></br><center>{domain}, {description}</center>
-  <p className="testingText">Boop </p><br></br>
-  <button className="btn btn-primary">Print Course and Tests</button>
-  
-  </div>
-
-
-  //render function to display the entire application
-render(){
-  const {courses, course, tests} = this.state;
-  return (
-    <div className="App">
-      <center><Cardcontainer getCourses={this.getCourses} getTests={this.getTests} courses={courses} tests={tests}/></center>
-        {/* input fields and submit button to send user-created data to the database. */}
+    return(
+      // input fields and submit button to send user-created data to the database.
       <div className="courseForm">
         <br></br>
       <input placeholder="Course name" value={course.name} onChange={e => this.setState({ course: {...course, name: e.target.value}})}/>
       <input placeholder="Domain" value={course.domain} onChange={e => this.setState({ course: {...course, domain: e.target.value}})}/>
       <input placeholder="Description" value={course.description} onChange={e => this.setState({ course: {...course, description: e.target.value}})}/><br></br>
       <button onClick={this.addCourse}>Add Course</button>
-      <br></br><br></br>
       </div>
-      <div>
-      {/* Input fields and button to add a new test to the database, including an associated course id */}
-      {/* <input placeholder="Test name" value={test.name} onChange={e => this.setState({ test: {...test, name: e.target.value}})}/>
-      <input placeholder="Duration" value={test.duration} onChange={e => this.setState({ test: {...test, duration: e.target.value}})}/>
-      <input placeholder="# of Questions" value={test.num_of_questions} onChange={e => this.setState({ test: {...test, num_of_questions: e.target.value}})}/>
-      <input placeholder="Associated Course #" value={test.course_id} onChange={e => this.setState({ test: {...test, course_id: e.target.value}})}/>
-      <br></br>
-      <button onClick={this.addTest}>Add Test</button>  */}
-      </div>
-    </div>
-  );
-}
+    )
+  }
 }
 
 class Testcard extends React.Component {
@@ -122,12 +106,19 @@ class Testcard extends React.Component {
     id: this.props.value.id
   }
 
+  showModal = () => {
+    this.setState({show: true});
+  }
+  
+  hideModal = () => {
+    this.setState({show: false});
+  }
+
   getTests = () => {
     this.props.getTests()
   }
 
   deleteTest = _ => {
-    const {test} = this.state;
     fetch(`http://localhost:4000/test/delete?id=${this.props.value.id}`)
     .then(this.getTests)
     .catch(err => console.error(err))
@@ -135,8 +126,9 @@ class Testcard extends React.Component {
 
   render(){
     return (<div className={ "testBox test-"+this.props.value.id} data-course={this.props.value.course_id}>
-      <div><div className="testName">{this.props.value.name}:</div><br></br><strong>Duration:</strong> {this.props.value.duration}<br></br><strong>Questions:</strong> {this.props.value.num_of_questions}</div>
-      <br></br><a className="btn btn-warning">Edit</a><a className="btn btn-danger" onClick={this.deleteTest}>Delete</a>
+      <div><div className="testName"><a className="btn btn-warning editBtn" onClick={this.showModal}>Edit</a>[{this.props.value.id}] {this.props.value.name}: <a className="btn btn-danger deleteBtn" onClick={this.deleteTest}>X</a></div><br></br><strong>Duration:</strong> {this.props.value.duration}<br></br><strong>Questions:</strong> {this.props.value.num_of_questions}</div>
+      <br></br>
+      <UpdateTestModal getTests={this.getTests} show={this.state.show} handleClose={this.hideModal} id={this.props.value.id}/>
     </div>
     )
   }
@@ -144,7 +136,8 @@ class Testcard extends React.Component {
 
 class Coursecard extends React.Component {
   state = {
-    show: false
+    show: false,
+    showUpdate: false
  };
 
  showModal = () => {
@@ -153,6 +146,14 @@ class Coursecard extends React.Component {
 
 hideModal = () => {
   this.setState({show: false});
+}
+
+showUpdateModal = () => {
+  this.setState({showUpdate: true});
+}
+
+hideUpdateModal = () => {
+  this.setState({showUpdate: false});
 }
 
 getTests = () => {
@@ -181,7 +182,7 @@ deleteCourse = _ => {
     }
    return(
      <div className="card col-md-3">
-       <div className="title"><a className="btn btn-warning editBtn">Edit</a><strong >[{this.props.value.id}] {this.props.value.name}</strong><a className="btn btn-danger deleteBtn" onClick={this.deleteCourse}>X</a></div>{'\n'}
+       <div className="title"><a className="btn btn-warning editBtn" onClick={this.showUpdateModal}>Edit</a><strong >[{this.props.value.id}] {this.props.value.name}</strong><a className="btn btn-danger deleteBtn" onClick={this.deleteCourse}>X</a></div>{'\n'}
        <p>{this.props.value.domain}<br></br>{this.props.value.description}</p>
        <div className="testDivTitle">
          <strong>Associated Tests:</strong>
@@ -191,7 +192,9 @@ deleteCourse = _ => {
        </div>
        <Modal getTests={this.getTests} show={this.state.show} handleClose={this.hideModal} courseId={this.props.value.id} test={this.props.test}>
        </Modal>
-       <a className="btn btn-primary" onClick={this.showModal}>Add Test</a>
+       <UpdateCourseModal id={this.props.value.id} getCourses={this.getCourses} show={this.state.showUpdate} handleClose={this.hideUpdateModal} courseId={this.props.value.id} course={this.props.course}>
+       </UpdateCourseModal>
+       <a className="btn btn-primary addTestBtn" onClick={this.showModal}>Add Test</a>
      </div>
    )
   }
@@ -242,6 +245,10 @@ class Modal extends React.Component{
     this.props.getTests()
   }
 
+  handleClose = () => {
+    this.props.handleClose()
+  }
+
   render(){
     const {test} = this.state;
     const showHideClassName = this.props.show ? "modal display-block" : "modal display-none";
@@ -251,8 +258,92 @@ class Modal extends React.Component{
       <input className="fixes" placeholder="Test name" value={test.name} onChange={e => this.setState({ test: {...test, name: e.target.value}})}/>
       <input placeholder="Duration" value={test.duration} onChange={e => this.setState({ test: {...test, duration: e.target.value}})}/>
       <input placeholder="# of Questions" value={test.num_of_questions} onChange={e => this.setState({ test: {...test, num_of_questions: e.target.value}})}/>
-      <a className="btn btn-success" onClick={this.addTest}>Add Test</a> 
-      <a className="btn btn-danger" onClick={this.props.handleClose}>X</a>
+      <a className="btn btn-success" onClick={this.addTest} onClick={this.handleClose}>Add Test</a> 
+      <a className="btn btn-danger" onClick={this.handleClose}>X</a>
+    </div>
+    )
+  }
+}
+
+class UpdateTestModal extends React.Component{
+  state = {
+    test: {
+      id: this.props.id,
+      name: '',
+      duration: '',
+      num_of_questions: '',
+      course_id: ''
+    }
+  };
+  updateTest = _ => {
+    const { test } = this.state;
+    fetch(`http://localhost:4000/test/update?name=${test.name}&course_id=${test.course_id}&num_of_questions=${test.num_of_questions}&duration=${test.duration}&id=${test.id}`)
+    .then(this.getTests)
+    .then(this.handleClose)
+    .catch(err => console.error(err))
+  }
+
+  getTests = () => {
+    this.props.getTests()
+  }
+
+  handleClose = () => {
+    this.props.handleClose()
+  }
+
+  render(){
+    const {test} = this.state;
+    const showHideClassName = this.props.show ? "modal display-block" : "modal display-none";
+
+    return(
+      <div className={showHideClassName}>
+      <input className="" placeholder="Test name" value={test.name} onChange={e => this.setState({ test: {...test, name: e.target.value}})}/>
+      <input placeholder="Duration" value={test.duration} onChange={e => this.setState({ test: {...test, duration: e.target.value}})}/>
+      <input placeholder="# of Questions" value={test.num_of_questions} onChange={e => this.setState({ test: {...test, num_of_questions: e.target.value}})}/>
+      <input placeholder="Course Number" value={test.course_id} onChange={e => this.setState({ test: {...test, course_id: e.target.value}})}/>
+      <a className="btn btn-success updateBtn" onClick={this.updateTest}>Submit</a> 
+      <a className="btn btn-danger updateClose" onClick={this.handleClose}>X</a>
+    </div>
+    )
+  }
+}
+
+class UpdateCourseModal extends React.Component{
+  state = {
+    course: {
+      id: this.props.id,
+      name: '',
+      domain: '',
+      description: ''
+    }
+  };
+  updateCourse = _ => {
+    const { course } = this.state;
+    fetch(`http://localhost:4000/course/update?name=${course.name}&domain=${course.domain}&description=${course.description}&id=${course.id}`)
+    .then(this.getCourses)
+    .then(this.handleClose)
+    .catch(err => console.error(err))
+  }
+
+  getCourses = () => {
+    this.props.getCourses()
+  }
+
+  handleClose = () => {
+    this.props.handleClose()
+  }
+
+  render(){
+    const {course} = this.state;
+    const showHideClassName = this.props.show ? "modal display-block" : "modal display-none";
+
+    return(
+      <div className={showHideClassName}>
+      <input className="" placeholder="Course name" value={course.name} onChange={e => this.setState({ course: {...course, name: e.target.value}})}/>
+      <input placeholder="Domain" value={course.domain} onChange={e => this.setState({ course: {...course, domain: e.target.value}})}/>
+      <input placeholder="Description" value={course.description} onChange={e => this.setState({ course: {...course, description: e.target.value}})}/>
+      <a className="btn btn-success" onClick={this.updateCourse} >Submit</a> 
+      <a className="btn btn-danger" onClick={this.handleClose}>X</a>
     </div>
     )
   }

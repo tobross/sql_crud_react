@@ -75,7 +75,7 @@ app.get('/course/add', (req, res) => {
 
 app.get('/test/add', (req, res) => {
     const { course_id, num_of_questions, name, duration } = req.query;
-    const INSERT_TEST_QUERY = `INSERT INTO test (course_id, num_of_questions, name, duration) VALUES('${course_id}', '${num_of_questions}', '${name}', '${duration}')`;
+    const INSERT_TEST_QUERY = `INSERT INTO test (course_id, num_of_questions, name, duration) VALUES('${course_id}', '${num_of_questions}', '${name}', '${duration}min')`;
     connection.query(INSERT_TEST_QUERY, (err, results) => {
         if(err){
             return res.send(err);
@@ -109,11 +109,29 @@ app.get('/course/delete', (req, res) => {
     })
 })
 
+app.get('/course/update', (req, res) => {
+    const { id, name, domain, description} = req.query;
+    const UPDATE_COURSE_QUERY = `UPDATE course SET name='${name}', domain='${domain}', description='${description}' WHERE id='${id}';`;
+    connection.query(UPDATE_COURSE_QUERY, (err, results) => {
+        if(err){
+            return res.send(err);
+        }else {
+            res.send('successfully Updated Course')
+        }
+    })
+})
 
-
-  // UPDATE tests SET course_id = {}, name = {}, duration = {}, num_of_questions = {} WHERE id = {this.props.id}
-
-  //UPDATE courses SET name = {}, domain = {}, description = {} WHERE id = {this.props.id}
+app.get('/test/update', (req, res) => {
+    const { id, name, duration, num_of_questions, course_id} = req.query;
+    const UPDATE_TEST_QUERY = `UPDATE test SET name='${name}', duration='${duration}min', num_of_questions='${num_of_questions}', course_id='${course_id}' WHERE id='${id}';`;
+    connection.query(UPDATE_TEST_QUERY, (err, results) => {
+        if(err){
+            return res.send(err);
+        }else {
+            res.send('successfully Updated Test')
+        }
+    })
+})
 
 app.listen(4000, () =>{
     console.log(`Courses server listening on port 4000.`)
